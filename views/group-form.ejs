@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<div class="narrow">
+<h1>Create a group</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<form method="post" action="/groups/new" class="card form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label>Group name<input name="name" value="<%= form.name || '' %>" maxlength="40" required></label>
+  <label>Description<textarea name="description" rows="3" maxlength="300" placeholder="What is this group about? (no links)"><%= form.description || '' %></textarea></label>
+  <fieldset class="radios">
+    <legend>Privacy</legend>
+    <label class="check"><input type="radio" name="privacy" value="public" <%= form.privacy !== 'private' ? 'checked' : '' %>> <span><b>🌐 Public</b> – anyone can join and see posts</span></label>
+    <label class="check"><input type="radio" name="privacy" value="private" <%= form.privacy === 'private' ? 'checked' : '' %>> <span><b>🔒 Private</b> – members join by invite link or request you approve. Posts are visible to members only.</span></label>
+  </fieldset>
+  <p class="muted small">You become the group owner: approve or remove members, appoint moderators, manage channels (#general, #stocks, #crypto, #forex, #sports-picks…), edit the group, or delete it.</p>
+  <button class="btn">Create group</button>
+</form>
+</div>
+<%- include('partials/footer') %>

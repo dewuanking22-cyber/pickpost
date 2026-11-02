@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+<h1>Admin</h1>
+<div class="stats big card"><div><small>Users</small><b><%= stats.users %></b></div><div><small>Posts</small><b><%= stats.posts %></b></div><div><small>Comments</small><b><%= stats.comments %></b></div></div>
+
+<h2>Open reports (<%= reports.length %>)</h2>
+<% if (!reports.length) { %><div class="card empty">Nothing to review 🎉</div><% } %>
+<% reports.forEach(function (r) { %>
+  <div class="card">
+    <div class="meta"><b><%= r.subject %></b> — <%= r.pick %> by <a href="/u/<%= r.author %>">@<%= r.author %></a>
+      <% if (r.hidden) { %><span class="status s-lost">auto-hidden</span><% } %><% if (r.deleted) { %><span class="status s-lost">deleted</span><% } %></div>
+    <p class="small">Reported by @<%= r.reporter %>: “<%= r.reason %>”</p>
+    <a class="btn ghost small" href="/post/<%= r.post_id %>">View post</a>
+    <form method="post" action="/admin/report/<%= r.id %>/resolve" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="action" value="delete"><button class="btn danger small">Delete post</button></form>
+    <form method="post" action="/admin/report/<%= r.id %>/resolve" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="action" value="dismiss"><button class="btn ghost small">Dismiss (restore)</button></form>
+  </div>
+<% }) %>
+
+<h2>Users</h2>
+<div class="card tablewrap"><table class="table">
+  <thead><tr><th>User</th><th>Posts</th><th>Joined</th><th>Role</th><th></th></tr></thead><tbody>
+  <% users.forEach(function (u) { %>
+    <tr><td><a href="/u/<%= u.username %>">@<%= u.username %></a></td><td><%= u.posts %></td><td><%= u.created_at.slice(0,10) %></td>
+      <td><%= u.banned ? 'Banned' : u.is_admin ? 'Admin' : 'Member' %></td>
+      <td class="rowactions">
+      <% if (u.id !== me.id) { %>
+        <form method="post" action="/admin/user/<%= u.id %>/<%= u.banned ? 'unban' : 'ban' %>" class="inline" <%= u.banned ? '' : 'data-confirm="Ban this user?"' %>><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linkbtn"><%= u.banned ? 'Unban' : 'Ban' %></button></form>
+        <form method="post" action="/admin/user/<%= u.id %>/<%= u.is_admin ? 'demote' : 'promote' %>" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linkbtn"><%= u.is_admin ? 'Remove admin' : 'Make admin' %></button></form>
+      <% } %></td></tr>
+  <% }) %>
+  </tbody></table></div>
+<%- include('partials/footer') %>

@@ -1,0 +1,76 @@
+<%- include('partials/header') %>
+<% if (group) { %>
+<section class="card grouphead">
+  <div class="grow">
+    <p class="muted small"><a href="/groups">← Groups</a></p>
+    <h1><%= group.name %> <span class="tag"><%= group.privacy === 'private' ? '🔒 Private' : '🌐 Public' %></span></h1>
+    <p class="muted"><%= group.description || 'No description yet.' %></p>
+    <p class="muted small">Owner <a href="/u/<%= group.owner %>">@<%= group.owner %></a> · <b><%= group.counts.members %></b> members</p>
+  </div>
+  <div class="groupactions">
+    <% if (group.m && group.m.status === 'active') { %>
+      <a class="btn small" href="/post/new?group=<%= group.id %><%= market !== 'all' ? '&market=' + market : '' %>">+ Post to group</a>
+      <% if (group.isStaff) { %><a class="btn ghost small" href="/g/<%= group.id %>/manage">Manage<%= group.counts.pending ? ' (' + group.counts.pending + ')' : '' %></a>
+      <% } else { %><form method="post" action="/g/<%= group.id %>/leave" data-confirm="Leave this group?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn ghost small">Leave</button></form><% } %>
+    <% } else if (me) { %>
+      <form method="post" action="/g/<%= group.id %>/join"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn small">Join group</button></form>
+    <% } else { %><a class="btn small" href="/login?next=/g/<%= group.id %>">Log in to join</a><% } %>
+  </div>
+</section>
+<% if (group.channels && group.channels.length && group.m && group.m.status === 'active') { %>
+<div class="chips" aria-label="Channels">
+  <a class="chip on" href="/g/<%= group.id %>">📝 Ideas</a>
+  <% group.channels.forEach(function (c) { %><a class="chip" href="/g/<%= group.id %>/c/<%= c.id %>"># <%= c.name %><% if (c.exchange && wm(c.exchange)) { %> <%= wm(c.exchange).flag %><% } %></a><% }) %>
+</div>
+<% } %>
+<% } else { %>
+<% if (feedSide === 'sports') { %>
+<section class="hero"><h1>🏟️ Sports picks</h1><p>Written picks from the community. <a href="/sports">Vote on today's games →</a></p></section>
+<% } else { %>
+<section class="hero">
+  <h1><%= config.appName %></h1>
+  <p><%= config.tagline %></p>
+</section>
+<% if (typeof marketCards !== 'undefined' && marketCards.length && page === 1) { %>
+<section class="votesec">
+  <div class="rowhead"><h2>📊 Vote on the market</h2><a class="small" href="/markets">More markets →</a></div>
+  <div class="vgrid"><% marketCards.slice(0, 4).forEach(function (mc) { %><%- include('partials/mvcard', { c: mc, back: backUrl }) %><% }) %></div>
+  <div class="rowhead"><h2>Markets feed</h2></div>
+</section>
+<% } %>
+<% } %>
+<% } %>
+
+<div class="chips" role="tablist" aria-label="Filter by market">
+  <% const qs = (o) => { const p = new URLSearchParams(Object.assign({ market, sort, status, q: search, mkt: exch }, o)); if (following) p.set('following','1'); ['market','sort','status','q','mkt'].forEach(k => { if (!p.get(k) || p.get(k)==='all' || (k==='sort' && p.get(k)==='new')) p.delete(k); }); const s = p.toString(); return basePath + (s ? '?' + s : ''); }; %>
+  <a class="chip <%= market === 'all' ? 'on' : '' %>" href="<%= qs({ market: 'all', page: '' }) %>">All</a>
+  <% (feedMarkets || markets).forEach(function (m) { %>
+    <a class="chip <%= market === m.key ? 'on' : '' %>" href="<%= qs({ market: m.key }) %>"><%= m.icon %> <%= m.label %> <span class="count"><%= counts[m.key] || 0 %></span></a>
+  <% }) %>
+</div>
+
+<form class="filters" method="get" action="<%= basePath %>">
+  <% if (market !== 'all') { %><input type="hidden" name="market" value="<%= market %>"><% } %>
+  <input type="search" name="q" value="<%= search %>" placeholder="Search ticker, game or user" maxlength="40">
+  <select name="sort" aria-label="Sort"><option value="new" <%= sort==='new'?'selected':'' %>>Newest</option><option value="top" <%= sort==='top'?'selected':'' %>>Most liked</option></select>
+  <select name="status" aria-label="Result"><option value="">Any result</option><% ['open','won','lost','push'].forEach(function (s) { %><option value="<%= s %>" <%= status===s?'selected':'' %>><%= s[0].toUpperCase()+s.slice(1) %></option><% }) %></select>
+  <select name="mkt" aria-label="World market"><option value="">All world markets</option><% worldMarkets.forEach(function (w) { %><option value="<%= w.key %>" <%= exch===w.key?'selected':'' %>><%= w.flag %> <%= w.name %></option><% }) %></select>
+  <% if (me) { %><label class="check"><input type="checkbox" name="following" value="1" <%= following ? 'checked' : '' %>> Following &amp; friends</label><% } %>
+  <button class="btn small">Apply</button>
+</form>
+
+<% if (!posts.length) { %>
+  <div class="card empty"><p>No posts match yet. <% if (me && group && !(group.m && group.m.status === 'active')) { %>Join the group to post.<% } else if (me) { %><a href="/post/new?<%= group ? 'group=' + group.id + '&' : '' %><%= market !== 'all' ? 'market=' + market : '' %>">Be the first to post an idea.</a><% } else { %><a href="/signup">Sign up</a> to post the first idea.<% } %></p></div>
+<% } %>
+<% posts.forEach(function (p) { %>
+  <%- include('partials/card', { p: p, full: false, back: backUrl }) %>
+<% }) %>
+
+<% if (pages > 1) { %>
+<nav class="pager">
+  <% if (page > 1) { %><a class="btn ghost small" href="<%= qs({}) + (qs({}).includes('?') ? '&' : '?') %>page=<%= page - 1 %>">← Newer</a><% } %>
+  <span class="muted">Page <%= page %> of <%= pages %></span>
+  <% if (page < pages) { %><a class="btn ghost small" href="<%= qs({}) + (qs({}).includes('?') ? '&' : '?') %>page=<%= page + 1 %>">Older →</a><% } %>
+</nav>
+<% } %>
+<%- include('partials/footer') %>

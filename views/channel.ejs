@@ -1,0 +1,39 @@
+<%- include('partials/header') %>
+<div class="chat" data-channel="<%= ch.id %>" data-me="<%= me.username %>" data-staff="<%= isStaff ? 1 : 0 %>" data-group="<%= g.id %>" data-csrf="<%= csrf %>">
+  <aside class="chan-list">
+    <a class="gname" href="/g/<%= g.id %>"><%= g.privacy === 'private' ? '🔒' : '🌐' %> <%= g.name %></a>
+    <a class="chan" href="/g/<%= g.id %>">📝 Ideas feed</a>
+    <div class="clabel">CHANNELS</div>
+    <% channels.forEach(function (c) { %><a class="chan <%= c.id === ch.id ? 'on' : '' %>" href="/g/<%= g.id %>/c/<%= c.id %>"># <%= c.name %><% if (c.exchange && wm(c.exchange)) { %> <small><%= wm(c.exchange).flag %></small><% } %></a><% }) %>
+    <% if (isStaff) { %><a class="chan muted" href="/g/<%= g.id %>/manage">⚙ Manage</a><% } %>
+  </aside>
+  <section class="chat-main">
+    <header class="chat-head"><b># <%= ch.name %></b> <% if (ch.exchange && wm(ch.exchange)) { %><a class="tag mk" href="/markets/<%= ch.exchange %>"><%= wm(ch.exchange).flag %> <%= wm(ch.exchange).name %> <%= wm(ch.exchange).status ? '' : '' %></a><% } %> <span class="muted small"><%= ch.topic %></span> <span class="conn" id="conn" title="Connection">●</span></header>
+    <div class="msgs" id="msgs" aria-live="polite">
+      <% if (!messages.length) { %><p class="muted empty-msg" id="emptyMsg">No messages yet — say hi 👋</p><% } %>
+      <% messages.forEach(function (m) { %>
+        <div class="msg" data-id="<%= m.id %>">
+          <div class="mhead"><a class="who" href="/u/<%= m.username %>">@<%= m.username %></a>
+            <% if (m.role === 'owner') { %><span class="role owner">owner</span><% } else if (m.role === 'mod') { %><span class="role mod">mod</span><% } %>
+            <span class="muted small"><%= lib.timeAgo(m.created_at) %></span>
+            <% if (isStaff || m.username === me.username) { %><form method="post" action="/g/<%= g.id %>/c/<%= ch.id %>/m/<%= m.id %>/delete" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linkbtn muted small" aria-label="Delete message">✕</button></form><% } %></div>
+          <% if (m.body) { %><div class="mbody"><%= m.body %></div><% } %>
+          <% if (m.card) { %><a class="vcard-embed s-<%= m.card.status %>" href="<%= m.card.href %>"><span class="vc-kind"><%= m.card.kind === 'game' ? '🏟️ Game vote' : '📈 Market vote' %></span><b><%= m.card.title %></b><span><%= m.card.pick %></span><span class="status s-<%= m.card.status %>"><%= m.card.status === 'open' ? 'Pending' : m.card.status %></span></a><% } %>
+        </div>
+      <% }) %>
+    </div>
+    <% if (error) { %><div class="alert" id="chatErr"><%= error %></div><% } else { %><div class="alert" id="chatErr" hidden></div><% } %>
+    <form method="post" action="/g/<%= g.id %>/c/<%= ch.id %>/send" class="composer" id="composer">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input name="body" id="msgInput" maxlength="500" placeholder="Message #<%= ch.name %> (no links)" autocomplete="off" required>
+      <button class="btn small">Send</button>
+    </form>
+  </section>
+  <aside class="member-list">
+    <div class="clabel">MEMBERS — <%= members.length %></div>
+    <% members.forEach(function (m) { %><a href="/u/<%= m.username %>">@<%= m.username %><% if (m.role === 'owner') { %> <span class="role owner">owner</span><% } else if (m.role === 'mod') { %> <span class="role mod">mod</span><% } %></a><% }) %>
+  </aside>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/chat.js"></script>
+<%- include('partials/footer') %>

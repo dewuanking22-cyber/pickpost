@@ -1,0 +1,34 @@
+<%- include('partials/header') %>
+<h1>Leaderboard</h1>
+<div class="chips">
+  <a class="chip <%= board === 'picks' ? 'on' : '' %>" href="/leaderboard">✍️ Written ideas</a>
+  <a class="chip <%= board === 'votes' ? 'on' : '' %>" href="/leaderboard?board=votes">🗳️ Market votes</a>
+  <a class="chip" href="/sports/leaderboard">🏟️ Sports →</a>
+</div>
+<% if (board === 'votes') { %>
+<p class="muted">Accuracy = Won ÷ (Won + Lost) on up/down market votes, graded automatically from price data. Minimum <%= minVotes %> graded votes.</p>
+<div class="chips"><a class="chip small <%= !timeframe ? 'on' : '' %>" href="/leaderboard?board=votes">All</a><a class="chip small <%= timeframe === 'day' ? 'on' : '' %>" href="/leaderboard?board=votes&timeframe=day">Sessions</a><a class="chip small <%= timeframe === 'week' ? 'on' : '' %>" href="/leaderboard?board=votes&timeframe=week">Weeks</a></div>
+<% if (!rows.length) { %><div class="card empty">Nobody has qualified yet.</div><% } else { %>
+<div class="card tablewrap"><table class="table"><thead><tr><th>#</th><th>User</th><th>W-L-P</th><th>Accuracy</th><th class="hide-sm">Graded</th></tr></thead><tbody>
+<% rows.forEach(function (r, i) { %><tr><td><%= i + 1 %><%= i === 0 ? ' 🥇' : i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : '' %></td><td><a href="/u/<%= r.username %>">@<%= r.username %></a></td><td><%= r.w %>-<%= r.l %>-<%= r.p %></td><td><b><%= r.acc %>%</b></td><td class="hide-sm"><%= r.settled %></td></tr><% }) %>
+</tbody></table></div><% } %>
+<% } else { %>
+<p class="muted">Ranked by win rate (Won ÷ Won + Lost). Minimum <%= config.leaderboardMinSettled %> settled picks to qualify. Results are self-reported.</p>
+<div class="chips">
+  <a class="chip <%= market === 'all' ? 'on' : '' %>" href="/leaderboard">All markets</a>
+  <% markets.forEach(function (m) { %><a class="chip <%= market === m.key ? 'on' : '' %>" href="/leaderboard?market=<%= m.key %>"><%= m.icon %> <%= m.label %></a><% }) %>
+</div>
+<% if (!rows.length) { %><div class="card empty">Nobody has qualified yet.</div><% } else { %>
+<div class="card tablewrap"><table class="table">
+  <thead><tr><th>#</th><th>User</th><th>W-L-P</th><th>Win %</th><th class="hide-sm">Settled</th><th class="hide-sm">Open</th></tr></thead>
+  <tbody>
+  <% rows.forEach(function (r, i) { %>
+    <tr><td><%= i + 1 %><%= i === 0 ? ' 🥇' : i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : '' %></td>
+      <td><a href="/u/<%= r.username %>">@<%= r.username %></a></td>
+      <td><%= r.w %>-<%= r.l %>-<%= r.p %></td><td><b><%= r.pct %>%</b></td>
+      <td class="hide-sm"><%= r.settled %></td><td class="hide-sm"><%= r.open %></td></tr>
+  <% }) %>
+  </tbody></table></div>
+<% } %>
+<% } %>
+<%- include('partials/footer') %>

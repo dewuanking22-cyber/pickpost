@@ -1,0 +1,23 @@
+<%- include('partials/header') %>
+<h1>Friends</h1>
+<% if (incoming.length) { %>
+<section class="card"><h2>Friend requests (<%= incoming.length %>)</h2>
+  <% incoming.forEach(function (r) { %>
+    <div class="rowitem"><a href="/u/<%= r.username %>">@<%= r.username %></a>
+      <span>
+        <form method="post" action="/u/<%= r.username %>/friend" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="/friends"><button class="btn small">Accept</button></form>
+        <form method="post" action="/u/<%= r.username %>/friend/decline" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn ghost small">Decline</button></form>
+      </span></div>
+  <% }) %>
+</section>
+<% } %>
+<section class="card"><h2>Your friends (<%= friends.length %>)</h2>
+  <% if (!friends.length) { %><p class="muted">No friends yet. Visit a profile and tap “Add friend”.</p><% } %>
+  <% friends.forEach(function (f) { %><div class="rowitem"><span><a href="/u/<%= f.username %>">@<%= f.username %></a> <span class="muted small"><%= f.bio %></span></span></div><% }) %>
+</section>
+<% if (outgoing.length) { %><section class="card"><h2>Sent requests</h2><% outgoing.forEach(function (o) { %><div class="rowitem"><a href="/u/<%= o.username %>">@<%= o.username %></a><span class="muted small">pending</span></div><% }) %></section><% } %>
+<section class="card"><h2>Following (<%= following.length %>)</h2>
+  <% if (!following.length) { %><p class="muted">You are not following anyone yet.</p><% } %>
+  <div class="chips wrapchips"><% following.forEach(function (f) { %><a class="chip" href="/u/<%= f.username %>">@<%= f.username %></a><% }) %></div>
+</section>
+<%- include('partials/footer') %>

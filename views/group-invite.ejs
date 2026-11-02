@@ -1,0 +1,12 @@
+<%- include('partials/header') %>
+<div class="narrow"><section class="card empty">
+<% if (!valid) { %>
+  <h1>Invite link not valid</h1><p class="muted">This invite link has expired or was reset by the group admin.</p><a class="btn small" href="/g/<%= g.id %>">View group</a>
+<% } else { %>
+  <h1>Join <%= g.name %></h1>
+  <p class="muted"><%= g.description || '' %></p>
+  <p class="muted small"><%= g.privacy === 'private' ? '🔒 Private' : '🌐 Public' %> group · <%= counts.members %> members</p>
+  <form method="post" action="/g/<%= g.id %>/invite/<%= code %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn">Join group</button></form>
+<% } %>
+</section></div>
+<%- include('partials/footer') %>

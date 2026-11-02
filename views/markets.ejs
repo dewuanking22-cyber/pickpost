@@ -1,0 +1,69 @@
+<%- include('partials/header') %>
+<% const sel = typeof selected !== 'undefined' ? selected : null; %>
+<div class="rowhead"><h1>🌍 Global markets</h1><span class="muted small" id="mktUpdated"><%= snap.updatedAt ? 'Updated ' + snap.updatedAt.slice(11, 19) + ' UTC' : '' %></span></div>
+<p class="muted">Pick a market to see its index level, change, local time and whether it is open. Status is computed from regular trading hours (local holidays are not modelled, except the US). Data: <%= snap.source %> — may be delayed.</p>
+
+<div class="chips" id="worldChips">
+  <a class="chip <%= !sel ? 'on' : '' %>" href="/markets">All</a>
+  <% snap.world.forEach(function (w) { %><a class="chip <%= sel && sel.key === w.key ? 'on' : '' %>" href="/markets/<%= w.key %>"><span class="dot <%= w.status.state %>"></span><%= w.flag %> <%= w.name %></a><% }) %>
+</div>
+
+<% if (!snap.enabled) { %><div class="alert">Live data is switched off (MARKET_DATA=off). Open/Closed status and local times still work.</div><% } %>
+
+<% if (!sel) { %>
+<% if (typeof marketCards !== 'undefined' && marketCards.length) { %>
+<section class="votesec">
+  <h2>📊 Vote on the market</h2>
+  <p class="muted small">Call the next session or week — Up or Down (optionally with a target move). Tracking only; graded automatically.</p>
+  <div class="vgrid"><% marketCards.forEach(function (mc) { %><%- include('partials/mvcard', { c: mc, back: backUrl }) %><% }) %></div>
+</section>
+<h2>Global markets</h2>
+<% } %>
+<div class="mgrid" id="mgrid">
+  <% snap.world.forEach(function (w) { %>
+    <a class="card mcard" href="/markets/<%= w.key %>" data-key="<%= w.key %>">
+      <div class="meta"><b><%= w.flag %> <%= w.name %></b> <span class="muted small"><%= w.exchange %></span>
+        <span class="pill <%= w.status.state %>" data-role="status"><span class="dot <%= w.status.state %>"></span><%= w.status.label %></span></div>
+      <% if (w.indices.length) { %>
+        <% w.indices.forEach(function (i) { %><div class="idx"><span><%= i.name || i.symbol %></span><b><%= lib.fmtPrice(i.price) %></b><i class="<%= i.changePct > 0 ? 'up' : i.changePct < 0 ? 'down' : '' %>"><%= lib.fmtPct(i.changePct) %></i></div><% }) %>
+      <% } else { %><div class="idx muted small">Index data unavailable right now</div><% } %>
+      <div class="muted small clockrow">🕒 <span class="clock" data-tz="<%= w.tz %>"><%= w.status.localTime %></span> local<% if (w.status.next) { %> · <%= w.status.next %><% } %></div>
+    </a>
+  <% }) %>
+</div>
+
+<h2>Crypto</h2>
+<%- include('partials/quotes', { items: (snap.sections.find(function (s) { return s.key === 'crypto'; }) || {}).items || [] }) %>
+<h2>Forex</h2>
+<%- include('partials/quotes', { items: (snap.sections.find(function (s) { return s.key === 'forex'; }) || {}).items || [] }) %>
+<h2>Futures</h2>
+<%- include('partials/quotes', { items: (snap.sections.find(function (s) { return s.key === 'futures'; }) || {}).items || [] }) %>
+<h2>Stocks &amp; ETFs</h2>
+<%- include('partials/quotes', { items: (snap.sections.find(function (s) { return s.key === 'stocks'; }) || {}).items || [] }) %>
+
+<% } else { %>
+<section class="card">
+  <div class="meta"><h2 style="margin:0"><%= sel.flag %> <%= sel.name %></h2> <span class="muted"><%= sel.exchange %></span>
+    <span class="pill <%= sel.status.state %>"><span class="dot <%= sel.status.state %>"></span><%= sel.status.label %></span></div>
+  <p class="muted">🕒 Local time <b class="clock" data-tz="<%= sel.tz %>"><%= sel.status.localTime %></b> (<%= sel.tz %>)<% if (sel.status.next) { %> · <%= sel.status.next %><% } %></p>
+  <% if (sel.sessions) { %><p class="muted small">Regular hours (local): <%= sel.sessions.map(function (s) { return s[0] + '–' + s[1]; }).join(', ') %>, Mon–Fri</p><% } %>
+  <% if (sel.indices.length) { %>
+    <div class="stats big"><% sel.indices.forEach(function (i) { %><div><small><%= i.name || i.symbol %></small><b><%= lib.fmtPrice(i.price) %></b><span class="<%= i.changePct > 0 ? 'up' : i.changePct < 0 ? 'down' : '' %>"><%= lib.fmtPct(i.changePct) %></span></div><% }) %></div>
+  <% } else { %><p class="muted">Index data is unavailable right now (the free data source did not respond<%= snap.enabled ? '' : ' / live data is off' %>). Add a free <code>FINNHUB_API_KEY</code> for ETF-proxy quotes.</p><% } %>
+  <% if (me) { %><a class="btn small" href="/post/new?mkt=<%= sel.key %>">+ Post an idea tagged <%= sel.flag %> <%= sel.name %></a><% } else { %><a class="btn small" href="/signup">Sign up to post</a><% } %>
+</section>
+<% if (typeof voteCards !== 'undefined' && voteCards.length) { %>
+<h2>📊 Vote on <%= sel.name %></h2>
+<div class="vgrid"><% voteCards.forEach(function (mc) { %><%- include('partials/mvcard', { c: mc, back: '/markets/' + sel.key }) %><% }) %></div>
+<% } %>
+<% if (sel.channels && sel.channels.length) { %>
+<section class="card"><h2>Chat channels tagged <%= sel.flag %> <%= sel.name %></h2>
+  <% sel.channels.forEach(function (c) { %><div class="rowitem"><a href="/g/<%= c.group_id %>/c/<%= c.id %>"># <%= c.name %> <span class="muted small">in <%= c.group_name %></span></a><span class="muted small"><%= c.private ? '🔒 members only' : 'public group' %></span></div><% }) %>
+</section>
+<% } %>
+<h2>Recent <%= sel.name %> ideas</h2>
+<% if (!posts.length) { %><div class="card empty">No ideas tagged <%= sel.flag %> <%= sel.name %> yet.</div><% } %>
+<% posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+<% } %>
+<p class="muted small">Index data via Yahoo Finance's unofficial public endpoint (no key) with an optional Finnhub ETF-proxy fallback; crypto via CoinGecko. Not for trading decisions.</p>
+<%- include('partials/footer') %>

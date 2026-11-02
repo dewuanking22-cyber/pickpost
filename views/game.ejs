@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<p><a class="muted" href="/sports?league=<%= g.league %>">← <%= g.leagueLabel %> games</a></p>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<% if (ok) { %><div class="alert ok"><%= ok %></div><% } %>
+<h1><%= g.away.name %> <span class="muted">@</span> <%= g.home.name %></h1>
+<p class="muted small"><%= g.leagueLabel %> · <time class="lt" datetime="<%= g.starts_at %>"><%= lib.fmtDateTime(g.starts_at) %></time><%= g.venue ? ' · ' + g.venue : '' %><%= g.broadcast ? ' · 📺 ' + g.broadcast : '' %></p>
+<%- include('partials/gamecard', { c: card, back: '/game/' + g.id }) %>
+
+<% if (me && me.is_admin) { %>
+<section class="card">
+  <h3>Admin · set voting lines</h3>
+  <p class="muted small">Admin lines override ESPN and community lines for new votes (existing votes keep the line they were cast with).</p>
+  <% [['total', 'Over/Under total', 'e.g. 47.5'], ['spread', 'Spread (home team)', 'e.g. -3.5']].forEach(function (m) { %>
+    <form method="post" action="/game/<%= g.id %>/line" class="filters">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="market" value="<%= m[0] %>">
+      <label class="small"><%= m[1] %>: <b><%= card[m[0]].line === null ? 'none' : card[m[0]].line %></b> <span class="muted">(<%= card[m[0]].source || '—' %>)</span></label>
+      <input name="line" inputmode="decimal" placeholder="<%= m[2] %>" aria-label="<%= m[1] %>"><button class="btn small">Set</button>
+      <button class="btn ghost small" name="clear" value="1">Clear admin/community line</button>
+    </form>
+  <% }) %>
+</section>
+<% } %>
+
+<div class="rowhead"><h2>Picks for this game</h2><% if (me) { %><a class="btn small" href="/post/new?market=sports&subject=<%= encodeURIComponent(g.matchup) %>&game=<%= g.id %>">+ Post a pick</a><% } %></div>
+<% if (!posts.length) { %><div class="card empty">No written picks yet.</div><% } %>
+<% posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+<% if (shared.length) { %><h2>Shared votes</h2><% shared.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %><% } %>
+<% if (recent.length) { %>
+<section class="card"><h3>Latest votes</h3>
+  <% recent.forEach(function (r) { %><div class="rowitem small"><a href="/u/<%= r.username %>">@<%= r.username %></a><span><%= r.market === 'moneyline' ? 'Winner' : r.market === 'total' ? 'O/U' : 'Spread' %>: <b><%= r.pick %></b></span><span class="status s-<%= r.result === 'pending' ? 'open' : r.result === 'void' ? 'push' : r.result %>"><%= r.result %></span></div><% }) %>
+</section>
+<% } %>
+<%- include('partials/footer') %>

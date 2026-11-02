@@ -1,0 +1,67 @@
+<%- include('partials/header') %>
+<p class="muted small"><a href="/g/<%= g.id %>">← <%= g.name %></a></p>
+<h1>Manage group</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<% if (ok) { %><div class="alert ok"><%= ok %></div><% } %>
+
+<% if (pending.length) { %>
+<section class="card"><h2>Join requests (<%= pending.length %>)</h2>
+  <% pending.forEach(function (m) { %>
+    <div class="rowitem"><a href="/u/<%= m.username %>">@<%= m.username %></a>
+      <span>
+        <form method="post" action="/g/<%= g.id %>/member/<%= m.user_id %>/approve" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn small">Approve</button></form>
+        <form method="post" action="/g/<%= g.id %>/member/<%= m.user_id %>/deny" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn ghost small">Deny</button></form>
+      </span></div>
+  <% }) %>
+</section>
+<% } %>
+
+<% if (isOwner) { %>
+<form method="post" action="/g/<%= g.id %>/edit" class="card form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Edit group</h2>
+  <label>Name<input name="name" value="<%= g.name %>" maxlength="40" required></label>
+  <label>Description<textarea name="description" rows="3" maxlength="300"><%= g.description %></textarea></label>
+  <label>Privacy
+    <select name="privacy"><option value="public" <%= g.privacy === 'public' ? 'selected' : '' %>>🌐 Public – anyone can join and see posts</option><option value="private" <%= g.privacy === 'private' ? 'selected' : '' %>>🔒 Private – invite or approval, members only</option></select>
+  </label>
+  <button class="btn">Save changes</button>
+</form>
+<% } %>
+
+<% if (isOwner) { %>
+<section class="card">
+  <h2>Invite link</h2>
+  <p class="muted small">Anyone with this link who is logged in can join instantly<%= g.privacy === 'private' ? ' (skips approval)' : '' %>. Reset it to disable the old link.</p>
+  <input class="copybox" readonly value="<%= inviteUrl %>">
+  <form method="post" action="/g/<%= g.id %>/invite-reset" class="inline" data-confirm="Reset the invite link?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn ghost small">Reset link</button></form>
+</section>
+
+<% } %>
+<section class="card"><h2>Channels</h2>
+  <% channels.forEach(function (c) { %><div class="rowitem"><span><a href="/g/<%= g.id %>/c/<%= c.id %>"># <%= c.name %></a> <% if (c.exchange && wm(c.exchange)) { %><span class="tag mk"><%= wm(c.exchange).flag %> <%= wm(c.exchange).name %></span><% } %> <span class="muted small"><%= c.topic %></span></span>
+    <% if (channels.length > 1) { %><form method="post" action="/g/<%= g.id %>/channels/<%= c.id %>/delete" class="inline" data-confirm="Delete #<%= c.name %> and its messages?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn danger small">Delete</button></form><% } %></div><% }) %>
+  <form method="post" action="/g/<%= g.id %>/channels" class="form inline-form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="grid3"><label>New channel<input name="name" maxlength="24" placeholder="options-flow" required></label><label>Topic<input name="topic" maxlength="80" placeholder="optional"></label>
+    <label>Market tag<select name="exchange"><option value="">None</option><% worldMarkets.forEach(function (w) { %><option value="<%= w.key %>"><%= w.flag %> <%= w.name %></option><% }) %></select></label></div>
+    <button class="btn small">Add channel</button>
+  </form>
+</section>
+<section class="card"><h2>Members (<%= members.length %>)</h2>
+  <% members.forEach(function (m) { %>
+    <div class="rowitem"><span><a href="/u/<%= m.username %>">@<%= m.username %></a> <% if (m.role === 'owner') { %><span class="role owner">owner</span><% } else if (m.role === 'mod') { %><span class="role mod">mod</span><% } %></span>
+      <% if (m.user_id !== g.owner_id) { %><span>
+      <% if (isOwner) { %><form method="post" action="/g/<%= g.id %>/member/<%= m.user_id %>/<%= m.role === 'mod' ? 'demote' : 'promote' %>" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn ghost small"><%= m.role === 'mod' ? 'Remove mod' : 'Make mod' %></button></form><% } %>
+      <% if (isOwner || m.role === 'member') { %><form method="post" action="/g/<%= g.id %>/member/<%= m.user_id %>/remove" class="inline" data-confirm="Remove @<%= m.username %> from the group?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn danger small">Remove</button></form><% } %></span>
+      <% } %></div>
+  <% }) %>
+</section>
+
+<% if (isOwner) { %>
+<section class="card">
+  <h2>Danger zone</h2>
+  <form method="post" action="/g/<%= g.id %>/delete" data-confirm="Delete this group and hide all its posts? This cannot be undone."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn danger">Delete group</button></form>
+</section>
+<% } %>
+<%- include('partials/footer') %>

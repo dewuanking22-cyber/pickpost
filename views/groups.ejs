@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<div class="rowhead"><h1>Groups</h1><a class="btn small" href="<%= me ? '/groups/new' : '/login?next=/groups/new' %>">+ Create group</a></div>
+<p class="muted">Create a group for your crew. <b>Public</b> groups are open to everyone. <b>Private</b> groups are invite or approval only, and posts are visible to members only.</p>
+
+<% if (mine.length) { %>
+<h2>My groups</h2>
+<div class="grid2">
+<% mine.forEach(function (g) { %><%- include('partials/groupcard', { g: g }) %><% }) %>
+</div>
+<% } %>
+
+<h2>Discover</h2>
+<form class="filters" method="get" action="/groups"><input type="search" name="q" value="<%= search %>" placeholder="Search groups" maxlength="40"><button class="btn small">Search</button></form>
+<% if (!discover.length) { %><div class="card empty">No groups yet. <a href="<%= me ? '/groups/new' : '/signup' %>">Create the first one.</a></div><% } %>
+<div class="grid2">
+<% discover.forEach(function (g) { %><%- include('partials/groupcard', { g: g }) %><% }) %>
+</div>
+<%- include('partials/footer') %>

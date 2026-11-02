@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<p class="muted small"><a href="/groups">← Groups</a></p>
+<% if (msg) { %><div class="alert ok"><%= msg %></div><% } %>
+<section class="card empty">
+  <h1>🔒 <%= g.name %></h1>
+  <p class="muted"><%= g.description || 'This is a private group.' %></p>
+  <p class="muted small"><%= counts.members %> members · created by @<%= g.owner %></p>
+  <p>Posts in this group are visible to members only.</p>
+  <% if (!me) { %><a class="btn" href="/login?next=/g/<%= g.id %>">Log in to request access</a>
+  <% } else if (m && m.status === 'pending') { %><p><span class="status s-push">Request pending</span> The group admin has not reviewed your request yet.</p>
+  <% } else { %>
+    <form method="post" action="/g/<%= g.id %>/join"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn">Request to join</button></form>
+    <p class="muted small">Have an invite link? Open it while logged in to join instantly.</p>
+  <% } %>
+</section>
+<%- include('partials/footer') %>
