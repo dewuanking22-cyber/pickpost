@@ -1,0 +1,8 @@
+<div class="reacts">
+  <% reactions.forEach(function (r) { const n = (rxmap[r.key] || 0); %>
+    <form method="post" action="/post/<%= p.id %>/react" class="inline">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back %>"><input type="hidden" name="kind" value="<%= r.key %>">
+      <button class="act rx <%= p.my_reaction === r.key ? 'mine' : '' %>" title="<%= r.label %>" aria-label="<%= r.label %> (<%= n %>)" <%= me ? '' : 'disabled' %>><%= r.emoji %><% if (n) { %> <span><%= n %></span><% } %></button>
+    </form>
+  <% }) %>
+</div>

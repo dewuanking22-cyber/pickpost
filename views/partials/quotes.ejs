@@ -1,0 +1,5 @@
+<% if (!items.length) { %><div class="card empty small">Data unavailable right now.</div><% } else { %>
+<div class="card tablewrap"><table class="table"><tbody>
+  <% items.forEach(function (i) { %><tr><td><b><% if (i.ysym) { %><a href="/t/<%= encodeURIComponent(i.ysym) %>" title="Vote on <%= i.symbol %>"><%= i.symbol %></a><% } else { %><%= i.symbol %><% } %></b></td><td class="muted"><%= i.name %></td><td class="num"><%= lib.fmtPrice(i.price) %></td><td class="num"><i class="<%= i.changePct > 0 ? 'up' : i.changePct < 0 ? 'down' : '' %>"><%= lib.fmtPct(i.changePct) %></i></td></tr><% }) %>
+</tbody></table></div>
+<% } %>

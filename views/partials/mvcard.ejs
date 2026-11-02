@@ -1,0 +1,39 @@
+<%
+  const info = c.info, q = c.quote;
+  const loginHref = me ? null : '/login?next=' + encodeURIComponent(back || '/t/' + encodeURIComponent(info.symbol));
+  const href = '/t/' + encodeURIComponent(info.symbol);
+  const mine = c.rounds.filter(function (r) { return r.mine; });
+  const fmtMine = (r) => (r.mine.direction === 'up' ? '▲ Up' : '▼ Down') + (r.mine.target_pct ? ' ≥ ' + r.mine.target_pct + '%' : '');
+%>
+<article class="card mvcard" id="mv-<%= info.symbol %>" data-sym="<%= info.symbol %>">
+  <div class="mvhead">
+    <a class="mvname" href="<%= href %>"><b><%= info.label %></b></a>
+    <% if (q) { %><span class="mvq"><%= lib.fmtPrice(q.price) %> <i class="<%= q.changePct > 0 ? 'up' : q.changePct < 0 ? 'down' : '' %>"><%= lib.fmtPct(q.changePct) %></i></span><% } %>
+  </div>
+  <% c.rounds.forEach(function (r) { %>
+    <form class="vrow" method="post" action="<%= href %>/vote" data-vote>
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back || href %>"><input type="hidden" name="timeframe" value="<%= r.timeframe %>"><input type="hidden" name="starts" value="<%= r.starts %>">
+      <div class="vlabel"><b><%= r.timeframe === 'day' ? 'Next session' : 'Next week' %></b> <span class="muted small"><%= r.label %> · <%= r.total %> vote<%= r.total === 1 ? '' : 's' %></span>
+        <% if (r.mine) { %><button class="vclear" name="remove" value="1" title="Clear my vote">clear</button><% } %></div>
+      <div class="vbtns n2">
+        <%- include('vbtn', { name: 'direction', pick: 'up', label: '▲ Up', sub: '', pct: r.upPct, n: r.up, picked: r.mine && r.mine.direction === 'up', result: r.mine && r.mine.result, locked: false, loginHref: loginHref, extra: 'up' }) %>
+        <%- include('vbtn', { name: 'direction', pick: 'down', label: '▼ Down', sub: '', pct: r.downPct, n: r.down, picked: r.mine && r.mine.direction === 'down', result: r.mine && r.mine.result, locked: false, loginHref: loginHref, extra: 'down' }) %>
+      </div>
+      <% if (me) { %><label class="tgt">Target move ≥ <input name="target" inputmode="decimal" maxlength="5" placeholder="optional" value="<%= r.mine && r.mine.target_pct ? r.mine.target_pct : '' %>" aria-label="Target percent move"> %</label><% } %>
+      <p class="lockline">🔒 Locks <time class="lt" datetime="<%= r.starts %>"><%= lib.fmtDateTime(r.starts) %></time> · graded at <time class="lt" datetime="<%= r.ends %>"><%= lib.fmtDateTime(r.ends) %></time></p>
+    </form>
+  <% }) %>
+  <% if (mine.length && me) { const targets = getShareTargets(); %>
+    <div class="myvotes"><% mine.forEach(function (r) { %><span class="status s-open"><%= r.timeframe === 'day' ? 'Session' : 'Week' %>: <%= fmtMine(r) %></span><% }) %></div>
+    <details class="sharebox"><summary class="act">↗ Share my vote</summary>
+      <form method="post" action="/votes/share" class="shareform" data-share>
+        <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="type" value="market"><input type="hidden" name="back" value="<%= back || href %>">
+        <select name="id" aria-label="Which vote"><% mine.forEach(function (r) { %><option value="<%= r.mine.id %>"><%= r.timeframe === 'day' ? 'Session' : 'Week' %>: <%= fmtMine(r) %></option><% }) %></select>
+        <select name="dest" aria-label="Share to"><% targets.forEach(function (t) { %><option value="<%= t.value %>"><%= t.label %></option><% }) %></select>
+        <input name="comment" maxlength="240" placeholder="Add a note (optional, no links)" aria-label="Note">
+        <button class="btn small">Share</button>
+      </form>
+    </details>
+  <% } %>
+  <p class="vnote">Tracking only — graded automatically from price data. Right direction <i>and</i> target (if set) = won.</p>
+</article>

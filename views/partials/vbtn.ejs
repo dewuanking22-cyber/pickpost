@@ -1,0 +1,7 @@
+<%# One clickable vote option. Params: label, sub, pct, n, picked (my vote or null), pick, result, locked, loginHref %>
+<% const cls = 'vbtn' + (picked ? ' sel' : '') + (picked && result && result !== 'pending' ? ' r-' + result : '') + (extra ? ' ' + extra : ''); %>
+<% if (loginHref) { %>
+  <a class="<%= cls %>" href="<%= loginHref %>" style="--pct:<%= pct %>%"><span class="vb-top"><%= label %></span><% if (sub) { %><span class="vb-sub"><%= sub %></span><% } %><span class="vb-pct"><%= pct %>%</span></a>
+<% } else { %>
+  <button class="<%= cls %>" name="<%= name %>" value="<%= pick %>" style="--pct:<%= pct %>%" <%= locked ? 'disabled' : '' %> aria-pressed="<%= picked ? 'true' : 'false' %>"><span class="vb-top"><%= label %><% if (picked) { %> ✓<% } %></span><% if (sub) { %><span class="vb-sub"><%= sub %></span><% } %><span class="vb-pct"><%= pct %>%</span></button>
+<% } %>

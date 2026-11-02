@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title><%= pageTitle ? pageTitle + ' · ' : '' %><%= config.appName %></title>
+<meta name="description" content="<%= config.tagline %>">
+<meta name="theme-color" content="<%= /^#[0-9a-fA-F]{3,8}$/.test(config.accentColor) ? config.accentColor : '#4f46e5' %>">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="<%= config.appName %>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="stylesheet" href="/style.css">
+<style>:root{--accent:<%= /^#[0-9a-fA-F]{3,8}$/.test(config.accentColor) ? config.accentColor : '#4f46e5' %>}</style>
+</head>
+<%
+  const splitHome = mode === 'split' && path === '/';
+  const nx = encodeURIComponent(modeNext);
+  const on = (re) => re.test(path) ? 'on' : '';
+  let links;
+  if (mode === 'split') links = [['/', 'Home', /^\/$/], ['/markets', '📈 Markets', /^\/(markets|t\/)/], ['/sports', '🏟️ Sports', /^\/(sports|game|team)/], ['/groups', 'Groups', /^\/(groups|g\/)/], ['/leaderboard', 'Leaderboard', /^\/leaderboard/]];
+  else if (side === 'sports') links = [['/', 'Games', /^\/(sports)?$/], ['/sports/feed', 'Sports feed', /^\/sports\/feed/], ['/sports/teams', 'Teams', /^\/(sports\/teams|team\/)/], ['/groups', 'Groups', /^\/(groups|g\/)/], ['/sports/leaderboard', 'Leaderboard', /^\/sports\/leaderboard/]];
+  else links = [['/', 'Feed', /^\/$/], ['/markets', 'Markets', /^\/(markets|t\/)/], ['/groups', 'Groups', /^\/(groups|g\/)/], ['/leaderboard', 'Leaderboard', /^\/leaderboard/]];
+  if (me) links.splice(links.length - 1, 0, ['/votes', 'My votes', /^\/votes/]);
+%>
+<body data-live="<%= config.data.enabled ? '1' : '0' %>" data-mode="<%= mode %>" data-side="<%= side %>" class="mode-<%= mode %> <%= splitHome ? 'splitpage' : '' %>">
+<a class="skip" href="#main">Skip to content</a>
+<div class="chrome">
+<header class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="/"><% if (config.logoEmoji) { %><span class="logo"><%= config.logoEmoji %></span><% } %><%= config.appName %></a>
+    <div class="switch" role="group" aria-label="Choose a side: Markets or Sports">
+      <a class="sw sw-markets <%= mode === 'markets' ? 'on' : '' %>" href="/mode/markets?next=<%= nx %>" <%= mode === 'markets' ? 'aria-current=true' : '' %>><span>📈</span> Markets</a>
+      <a class="sw sw-sports <%= mode === 'sports' ? 'on' : '' %>" href="/mode/sports?next=<%= nx %>" <%= mode === 'sports' ? 'aria-current=true' : '' %>><span>🏟️</span> Sports</a>
+      <a class="sw sw-split <%= mode === 'split' ? 'on' : '' %>" href="/mode/split?next=<%= nx %>" title="Markets and Sports side by side"><span>◫</span> Split</a>
+    </div>
+    <div class="nav right">
+      <% if (me) { %>
+        <a href="/post/new" class="btn small">+ Post</a>
+        <a href="/notifications" class="iconlink" title="Notifications" aria-label="Notifications">🔔<% if (unread) { %><span class="badge"><%= unread %></span><% } %></a>
+        <a href="/friends" class="iconlink hide-sm" title="Friends" aria-label="Friends">👥<% if (pendingFriends) { %><span class="badge"><%= pendingFriends %></span><% } %></a>
+        <a href="/u/<%= me.username %>" class="hide-sm">@<%= me.username %></a>
+        <% if (me.is_admin) { %><a href="/admin" class="hide-sm">Admin</a><% } %>
+        <a href="/settings" class="hide-sm">Settings</a>
+        <form method="post" action="/logout" class="inline hide-sm"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linkbtn">Log out</button></form>
+      <% } else { %>
+        <a href="/login">Log in</a>
+        <a href="/signup" class="btn small">Sign up</a>
+      <% } %>
+    </div>
+  </div>
+  <nav class="subnav" aria-label="Main"><div class="wrap"><% links.forEach(function (l) { %><a href="<%= l[0] %>" class="<%= l[2].test(path) ? 'on' : '' %>"><%= l[1] %></a><% }) %></div></nav>
+</header>
+<% if (!splitHome) { %>
+  <% if (mode === 'split') { %><%- include('strip-markets', { cls: 'pinned' }) %><%- include('strip-sports', { cls: 'pinned' }) %>
+  <% } else if (side === 'sports') { %><%- include('strip-sports', { cls: 'pinned' }) %>
+  <% } else { %><%- include('strip-markets', { cls: 'pinned' }) %><% } %>
+<% } %>
+</div>
+<div class="shell wrap <%= sidebar ? 'withside' : 'full' %>">
+<main id="main">

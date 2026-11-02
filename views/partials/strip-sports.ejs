@@ -1,0 +1,21 @@
+<%
+  const all = [].concat.apply([], strip.leagues.map(function (l) { return l.games; }));
+  const live = all.filter(function (g) { return g.state === 'in'; });
+  const pre = all.filter(function (g) { return g.state === 'pre'; }).sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; });
+  const post = all.filter(function (g) { return g.state === 'post'; }).sort(function (a, b) { return a.starts_at < b.starts_at ? 1 : -1; });
+  const items = live.concat(pre.slice(0, 10), post.slice(0, live.length + pre.length < 6 ? 6 : 3)).slice(0, 16);
+%>
+<div class="strip sstrip <%= typeof cls !== 'undefined' ? cls : '' %>" aria-label="Live scores" data-strip="sports">
+  <span class="striplabel"><%= live.length ? '🔴 LIVE' : '🏟️ SCORES' %></span>
+  <div class="viewport"><div class="track strack">
+    <% if (!items.length) { %><span class="sc muted"><%= config.data.enabled ? 'No games on the board right now.' : 'Live scores are switched off (MARKET_DATA=off)' %></span><% } %>
+    <% items.forEach(function (g) { %>
+      <a class="sc <%= g.state %>" href="/game/<%= g.id %>">
+        <% if (g.state === 'in') { %><span class="lv">LIVE</span><% } else if (g.state === 'post') { %><span class="fin">FINAL</span><% } %>
+        <small class="lgn"><%= g.leagueLabel %></small>
+        <b><%= g.away.abbr %></b> <% if (g.state === 'pre') { %>@<% } else { %><%= g.away.score %> –  <%= g.home.score %><% } %> <b><%= g.home.abbr %></b>
+        <small class="muted"><% if (g.state === 'pre') { %><time class="lt" datetime="<%= g.starts_at %>"><%= lib.fmtGameTime(g.starts_at) %></time><% } else if (g.state === 'in') { %><%= g.detail %><% } %></small>
+      </a>
+    <% }) %>
+  </div></div>
+</div>

@@ -1,0 +1,22 @@
+<% const nx = encodeURIComponent(modeNext); %>
+</main>
+<% if (sidebar) { %><aside class="sidepane"><%- include('sidebar') %></aside><% } %>
+</div>
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="disclaimer"><%= config.footerText %></p>
+    <p class="muted small"><%= config.appName %> is a community for sharing ideas and tracking predictions. No real trades, bets or payments happen here — votes are for tracking only. Market and score data may be delayed or unavailable.</p>
+  </div>
+</footer>
+<nav class="tabbar" aria-label="Mobile">
+  <a href="/mode/markets?next=<%= nx %>" class="<%= mode === 'markets' ? 'on' : '' %>"><span>📈</span>Markets</a>
+  <a href="/mode/sports?next=<%= nx %>" class="<%= mode === 'sports' ? 'on' : '' %>"><span>🏟️</span>Sports</a>
+  <a href="/groups" class="<%= /^\/(groups|g\/)/.test(path) ? 'on' : '' %>"><span>💬</span>Groups</a>
+  <a href="<%= me ? '/notifications' : '/login' %>" class="<%= /^\/notifications/.test(path) ? 'on' : '' %>"><span>🔔<% if (unread) { %><b class="tbadge"><%= unread %></b><% } %></span>Alerts</a>
+  <a href="<%= me ? '/u/' + me.username : '/login' %>" class="<%= /^\/(u\/|settings|friends|login|signup|votes)/.test(path) ? 'on' : '' %>"><span>👤</span><%= me ? 'Me' : 'Log in' %></a>
+</nav>
+<script src="/app.js"></script>
+<script src="/live.js"></script>
+<script src="/votes.js"></script>
+</body>
+</html>

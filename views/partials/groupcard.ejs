@@ -1,0 +1,7 @@
+<a class="card groupcard" href="/g/<%= g.id %>">
+  <div class="meta"><b><%= g.name %></b> <span class="tag"><%= g.privacy === 'private' ? '🔒 Private' : '🌐 Public' %></span>
+    <% if (g.my_status === 'pending') { %><span class="status s-push">Request pending</span><% } %>
+    <% if (me && g.owner_id === me.id) { %><span class="status s-won">You're admin</span><% } %></div>
+  <p class="muted"><%= g.description || 'No description.' %></p>
+  <p class="muted small"><%= g.members %> members<%= g.privacy === 'public' ? ' · ' + g.posts + ' posts' : '' %> · by @<%= g.owner %></p>
+</a>

@@ -1,0 +1,83 @@
+<%
+  const g = c.game, gid = g.id;
+  const loginHref = me ? null : '/login?next=' + encodeURIComponent(back || '/game/' + gid);
+  const showScore = g.state !== 'pre';
+  const resClass = (m) => (m.mine && m.mine.result !== 'pending') ? m.mine.result : '';
+  const winA = g.state === 'post' && g.away_score > g.home_score, winH = g.state === 'post' && g.home_score > g.away_score;
+  const lineSrc = { espn: 'ESPN line', admin: 'admin line', community: 'community line' };
+  const myVotes = [['moneyline', c.moneyline], ['total', c.total], ['spread', c.spread]].filter(function (x) { return x[1].mine; });
+  const fmtLine = (n) => (n > 0 ? '+' : '') + n;
+%>
+<article class="card gcard <%= c.locked ? 'locked' : '' %> st-<%= g.state %>" id="g-<%= gid %>" data-gid="<%= gid %>">
+  <div class="ghead">
+    <a class="tag" href="/sports?league=<%= g.league %>"><%= (config.data.leagues.find(function (l) { return l.key === g.league; }) || { label: g.league }).label %></a>
+    <% if (g.state === 'in') { %><span class="livepill">● LIVE</span><span class="muted small"><%= g.detail %></span>
+    <% } else if (g.state === 'post') { %><span class="muted small"><b><%= /final|ft|full/i.test(g.detail) ? g.detail : 'Final' %></b></span>
+    <% } else { %><span class="muted small"><time class="lt" datetime="<%= g.starts_at %>"><%= lib.fmtDateTime(g.starts_at) %></time></span><% } %>
+    <a class="gopen small" href="/game/<%= gid %>">Details →</a>
+  </div>
+  <div class="gteams">
+    <div class="gt <%= winA ? 'win' : '' %>"><a class="tn" href="/team/<%= g.league %>/<%= g.away_id %>"><%= g.away_name %></a><% if (g.away_record) { %> <small class="muted"><%= g.away_record %></small><% } %><b class="gscore"><%= showScore ? g.away_score : '' %></b></div>
+    <div class="gt <%= winH ? 'win' : '' %>"><a class="tn" href="/team/<%= g.league %>/<%= g.home_id %>"><%= g.home_name %></a> <small class="muted">home<%= g.home_record ? ' · ' + g.home_record : '' %></small><b class="gscore"><%= showScore ? g.home_score : '' %></b></div>
+  </div>
+  <% if (c.void) { %><p class="lockmsg void">⚠️ This game was postponed or cancelled — votes are void.</p>
+  <% } else if (c.locked) { %><p class="lockmsg">🔒 Voting is locked — the game has started. Your votes are graded automatically from the final score.</p>
+  <% } else { %><p class="lockmsg open">🗳️ Voting open until kickoff · <time class="lt" datetime="<%= g.starts_at %>"><%= lib.fmtDateTime(g.starts_at) %></time></p><% } %>
+
+  <div class="vmarkets">
+    <%# ---- Moneyline: who wins ---- %>
+    <form class="vrow" method="post" action="/game/<%= gid %>/vote" data-vote>
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back || '/game/' + gid %>"><input type="hidden" name="market" value="moneyline">
+      <div class="vlabel"><b><%= c.soccer ? 'Result' : 'Winner' %></b> <span class="muted small">· <%= c.moneyline.total %> vote<%= c.moneyline.total === 1 ? '' : 's' %></span><% if (c.moneyline.mine && !c.locked) { %><button class="vclear" name="remove" value="1" title="Clear my vote">clear</button><% } %></div>
+      <div class="vbtns n<%= c.moneyline.picks.length %>">
+        <% c.moneyline.picks.forEach(function (p) { %>
+          <%- include('vbtn', { name: 'pick', pick: p.pick, label: p.pick === 'draw' ? 'Draw' : (p.pick === 'home' ? g.home_name : g.away_name), sub: c.soccer ? (p.pick === 'draw' ? '' : (p.pick === 'home' ? 'win' : 'win')) : 'to win', pct: p.pct, n: p.n, picked: c.moneyline.mine && c.moneyline.mine.pick === p.pick, result: resClass(c.moneyline), locked: c.locked, loginHref: loginHref, extra: p.pick === 'draw' ? 'mid' : '' }) %>
+        <% }) %>
+      </div>
+    </form>
+
+    <%# ---- Over / Under ---- %>
+    <form class="vrow" method="post" action="/game/<%= gid %>/vote" data-vote>
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back || '/game/' + gid %>"><input type="hidden" name="market" value="total">
+      <div class="vlabel"><b>Over / Under</b> <% if (c.total.line !== null) { %><span class="linechip"><%= c.total.line %></span> <span class="muted small"><%= lineSrc[c.total.source] %></span><% } %> <span class="muted small">· <%= c.total.total %> vote<%= c.total.total === 1 ? '' : 's' %></span><% if (c.total.mine && !c.locked) { %><button class="vclear" name="remove" value="1" title="Clear my vote">clear</button><% } %></div>
+      <% if (c.total.line === null && !c.locked && me) { %><label class="firstline">No line yet — be the first voter and set it: <input name="line" inputmode="decimal" placeholder="e.g. 47.5" maxlength="6" aria-label="Total line"></label><% } %>
+      <div class="vbtns n2">
+        <% c.total.picks.forEach(function (p) { %>
+          <%- include('vbtn', { name: 'pick', pick: p.pick, label: p.pick === 'over' ? 'Over' : 'Under', sub: c.total.line !== null ? String(c.total.line) : '', pct: p.pct, n: p.n, picked: c.total.mine && c.total.mine.pick === p.pick, result: resClass(c.total), locked: c.locked, loginHref: loginHref, extra: '' }) %>
+        <% }) %>
+      </div>
+    </form>
+
+    <%# ---- Spread (line is the HOME team's) ---- %>
+    <form class="vrow" method="post" action="/game/<%= gid %>/vote" data-vote>
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back || '/game/' + gid %>"><input type="hidden" name="market" value="spread">
+      <div class="vlabel"><b>Spread</b> <% if (c.spread.line !== null) { %><span class="linechip"><%= g.home_abbr || 'Home' %> <%= fmtLine(c.spread.line) %></span> <span class="muted small"><%= lineSrc[c.spread.source] %></span><% } %> <span class="muted small">· <%= c.spread.total %> vote<%= c.spread.total === 1 ? '' : 's' %></span><% if (c.spread.mine && !c.locked) { %><button class="vclear" name="remove" value="1" title="Clear my vote">clear</button><% } %></div>
+      <% if (c.spread.line === null && !c.locked && me) { %><label class="firstline">No line yet — set it (home team's spread, e.g. -3.5): <input name="line" inputmode="decimal" placeholder="-3.5" maxlength="6" aria-label="Spread line (home team)"></label><% } %>
+      <div class="vbtns n2">
+        <% c.spread.picks.forEach(function (p) { const l = c.spread.line === null ? null : (p.pick === 'home' ? c.spread.line : -c.spread.line); %>
+          <%- include('vbtn', { name: 'pick', pick: p.pick, label: p.pick === 'home' ? g.home_name : g.away_name, sub: l === null ? '' : fmtLine(l), pct: p.pct, n: p.n, picked: c.spread.mine && c.spread.mine.pick === p.pick, result: resClass(c.spread), locked: c.locked, loginHref: loginHref, extra: '' }) %>
+        <% }) %>
+      </div>
+    </form>
+  </div>
+
+  <% if (myVotes.length) { %>
+    <div class="myvotes">
+      <% myVotes.forEach(function (x) { const v = x[1].mine; %>
+        <span class="status s-<%= v.result === 'pending' ? 'open' : v.result === 'void' ? 'push' : v.result %>"><%= x[0] === 'moneyline' ? 'Winner' : x[0] === 'total' ? 'O/U' : 'Spread' %>: <%= v.text %> · <%= v.result === 'pending' ? 'pending' : v.result %></span>
+      <% }) %>
+    </div>
+    <% if (me) { const targets = getShareTargets(); %>
+    <details class="sharebox"><summary class="act">↗ Share my picks</summary>
+      <form method="post" action="/votes/share" class="shareform" data-share>
+        <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="type" value="game"><input type="hidden" name="back" value="<%= back || '/game/' + gid %>">
+        <select name="id" aria-label="Which vote"><% myVotes.forEach(function (x) { %><option value="<%= x[1].mine.id %>"><%= x[1].mine.text %> (<%= x[0] === 'moneyline' ? 'Winner' : x[0] === 'total' ? 'O/U' : 'Spread' %>)</option><% }) %></select>
+        <select name="dest" aria-label="Share to"><% targets.forEach(function (t) { %><option value="<%= t.value %>"><%= t.label %></option><% }) %></select>
+        <input name="comment" maxlength="240" placeholder="Add a note (optional, no links)" aria-label="Note">
+        <button class="btn small">Share</button>
+      </form>
+    </details>
+    <% } %>
+  <% } %>
+  <p class="vnote">Tracking only — no real money, odds or payouts. <%= me ? '' : 'Log in to vote.' %></p>
+</article>

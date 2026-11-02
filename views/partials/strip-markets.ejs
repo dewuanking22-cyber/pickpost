@@ -1,0 +1,7 @@
+<div class="strip ticker <%= typeof cls !== 'undefined' ? cls : '' %>" aria-label="Live market ticker" data-strip="markets">
+  <span class="striplabel">📈 MARKETS</span>
+  <div class="viewport"><div class="track tickerTrack">
+    <% if (!ticker.length) { %><span class="tk muted"><%= config.data.enabled ? 'Loading market data…' : 'Live prices are switched off (MARKET_DATA=off)' %></span><% } %>
+    <% ticker.forEach(function (t) { %><a class="tk" href="<%= t.ysym ? '/t/' + encodeURIComponent(t.ysym) : '/markets' %>"><b><%= t.symbol %></b> <%= lib.fmtPrice(t.price) %> <i class="<%= t.changePct > 0 ? 'up' : t.changePct < 0 ? 'down' : '' %>"><%= lib.fmtPct(t.changePct) %></i></a><% }) %>
+  </div></div>
+</div>

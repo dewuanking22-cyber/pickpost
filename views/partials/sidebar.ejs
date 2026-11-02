@@ -1,0 +1,34 @@
+<% if (side === 'sports' || mode === 'split') { %>
+<section class="card side">
+  <div class="rowhead"><h3>🔴 Live now</h3><a class="small" href="/sports?filter=live">All →</a></div>
+  <div id="sideLive">
+    <% if (!sideLive.length) { %><p class="muted small">No games in progress right now.</p><% } %>
+    <% sideLive.forEach(function (g) { %>
+      <a class="mini" href="/game/<%= g.id %>"><span class="lg"><%= g.leagueLabel %></span>
+        <span><%= g.away.abbr %> <b><%= g.away.score %></b> – <b><%= g.home.score %></b> <%= g.home.abbr %></span><small><%= g.detail %></small></a>
+    <% }) %>
+  </div>
+</section>
+<section class="card side">
+  <h3>🎯 Vote on any game</h3>
+  <p class="muted small">Pick the winner (or draw), over/under and the spread on every game. It's tracking only — your record and accuracy build up on the leaderboard.</p>
+  <a class="btn ghost small" href="/sports/leaderboard">Sports leaderboard</a>
+</section>
+<% } %>
+<% if (side === 'markets' || mode === 'split') { %>
+<section class="card side">
+  <div class="rowhead"><h3>🌍 World markets</h3><a class="small" href="/markets">All →</a></div>
+  <ul class="wlist" id="sideWorld">
+    <% if (!sideWorld.length) { %><li class="muted small">Market data off or loading.</li><% } %>
+    <% sideWorld.forEach(function (w) { %>
+      <li><a href="/markets/<%= w.key %>"><span class="dot <%= w.status.state %>"></span><span class="wn"><%= w.flag %> <%= w.name %></span>
+        <span class="wv"><% if (w.idx) { %><i class="<%= w.idx.changePct > 0 ? 'up' : w.idx.changePct < 0 ? 'down' : '' %>"><%= lib.fmtPct(w.idx.changePct) %></i><% } else { %><%= w.status.label %><% } %></span></a></li>
+    <% }) %>
+  </ul>
+</section>
+<% } %>
+<section class="card side">
+  <h3>💬 Groups</h3>
+  <p class="muted small">Join a group to chat in channels like #stocks, #crypto and #sports-picks, and share your votes there.</p>
+  <a class="btn ghost small" href="/groups">Browse groups</a>
+</section>

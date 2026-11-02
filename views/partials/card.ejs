@@ -1,0 +1,60 @@
+<% const m = mkt(p.category) || { label: p.category, kind: 'trading', icon: '' }; %>
+<% if (p.kind && p.kind !== 'idea') { const vhref = p.kind === 'game_vote' ? '/game/' + p.game_id : '/t/' + encodeURIComponent(p.game_id); %>
+<article class="card post votepost" id="p<%= p.id %>">
+  <div class="meta">
+    <a class="who" href="/u/<%= p.username %>">@<%= p.username %></a>
+    <span class="muted">· shared a <%= p.kind === 'game_vote' ? 'game' : 'market' %> vote · <%= lib.timeAgo(p.created_at) %></span>
+    <% if (p.group_id && p.group_name) { %><a class="tag grp" href="/g/<%= p.group_id %>"><%= p.group_privacy === 'private' ? '🔒' : '👥' %> <%= p.group_name %></a><% } %>
+    <span class="status s-<%= p.status %>"><%= p.status === 'open' ? 'Pending' : p.status === 'won' ? 'Won' : p.status === 'lost' ? 'Lost' : 'Push' %></span>
+  </div>
+  <a class="vpbody" href="<%= vhref %>"><span class="vc-kind"><%= p.kind === 'game_vote' ? '🏟️ Game vote' : '📈 Market vote' %></span><b class="vptitle"><%= p.subject %></b><span class="vppick"><%= p.pick %></span></a>
+  <p class="reason"><%= p.reasoning %></p>
+  <div class="actions">
+    <% const rxmap = {}; (p.rx || '').split(',').filter(Boolean).forEach(function (x) { const kv = x.split(':'); rxmap[kv[0]] = Number(kv[1]); }); %>
+    <%- include('reactions', { p: p, back: back, rxmap: rxmap }) %>
+    <a class="act" href="/post/<%= p.id %>#comments">💬 <%= p.comments %></a>
+    <a class="act" href="<%= vhref %>">Vote too →</a>
+  </div>
+</article>
+<% } else { %>
+<article class="card post" id="p<%= p.id %>">
+  <div class="meta">
+    <a class="who" href="/u/<%= p.username %>">@<%= p.username %></a>
+    <span class="muted">· <%= lib.timeAgo(p.created_at) %></span>
+    <% if (p.group_id && p.group_name) { %><a class="tag grp" href="/g/<%= p.group_id %>"><%= p.group_privacy === 'private' ? '🔒' : '👥' %> <%= p.group_name %></a><% } %>
+    <% if (p.exchange && wm(p.exchange) && p.exchange !== p.category) { %><a class="tag mk" href="/markets/<%= p.exchange %>" title="<%= wm(p.exchange).exchange %>"><%= wm(p.exchange).flag %> <%= wm(p.exchange).name %></a><% } %>
+    <a class="tag" href="<%= m.kind === 'sports' ? '/sports/feed' : '/?market=' + p.category %>"><%= m.icon %> <%= m.label %></a>
+    <% if (p.game_id) { %><a class="tag mk" href="/game/<%= p.game_id %>">🏟️ game</a><% } %>
+    <span class="status s-<%= p.status %>"><%= p.status === 'open' ? 'Open' : p.status === 'won' ? 'Won' : p.status === 'lost' ? 'Lost' : 'Push' %></span>
+    <% if (p.hidden) { %><span class="status s-lost">Hidden - under review</span><% } %>
+  </div>
+  <h3><a href="/post/<%= p.id %>"><%= p.subject %></a> <span class="pickname"><%= m.kind === 'trading' ? '— ' + p.pick : '' %></span></h3>
+  <% if (m.kind === 'sports') { %>
+    <div class="stats">
+      <div><small>Pick</small><b><%= p.pick %></b></div>
+      <div><small>Odds</small><b><%= p.odds %></b></div>
+      <% if (p.units) { %><div><small>Units</small><b><%= p.units %>u</b></div><% } %>
+    </div>
+  <% } else { %>
+    <div class="stats">
+      <div><small>Entry</small><b><%= p.entry %></b></div>
+      <div><small>Target</small><b class="up"><%= p.target %></b></div>
+      <div><small>Stop</small><b class="down"><%= p.stop %></b></div>
+      <div><small>Horizon</small><b><%= p.timeframe %></b></div>
+    </div>
+  <% } %>
+  <p class="reason"><%= full ? p.reasoning : (p.reasoning.length > 220 ? p.reasoning.slice(0, 220) + '…' : p.reasoning) %></p>
+  <div class="actions">
+    <% const rxmap = {}; (p.rx || '').split(',').filter(Boolean).forEach(function (x) { const kv = x.split(':'); rxmap[kv[0]] = Number(kv[1]); }); %>
+    <%- include('reactions', { p: p, back: back, rxmap: rxmap }) %>
+    <a class="act" href="/post/<%= p.id %>#comments">💬 <%= p.comments %></a>
+    <% if (me && me.id === p.user_id && p.status === 'open') { %>
+      <span class="settle">
+        <% ['won','lost','push'].forEach(function (r) { %>
+          <form method="post" action="/post/<%= p.id %>/settle" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back %>"><input type="hidden" name="result" value="<%= r %>"><button class="act res-<%= r %>"><%= r === 'won' ? 'Won' : r === 'lost' ? 'Lost' : 'Push' %></button></form>
+        <% }) %>
+      </span>
+    <% } %>
+  </div>
+</article>
+<% } %>
