@@ -1,0 +1,30 @@
+# Render Blueprint: New + > Blueprint > point at your repo.
+# FREE-plan demo config: no persistent disk, so the SQLite database lives in /tmp and is re-created (and re-seeded
+# with demo content) on every deploy/restart. For a real community use a paid instance + disk (see README).
+services:
+  - type: web
+    name: pickpost
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node scripts/demo-start.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "true"
+      - key: SECURE_COOKIES
+        value: "true"
+      - key: DATA_DIR
+        value: /tmp/pickpost-data
+      - key: DEMO_SEED
+        value: "true"
+      - key: DEMO_ADMIN_USER
+        value: malik
+      - key: DEMO_ADMIN_PASSWORD
+        sync: false   # set in the Render dashboard; never commit it
+      - key: APP_NAME
+        value: PickPost
+      - key: FINNHUB_API_KEY
+        sync: false
