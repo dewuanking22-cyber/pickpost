@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+<h1>🗳️ My votes</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<% if (ok) { %><div class="alert ok"><%= ok %></div><% } %>
+<div class="stats big">
+  <div><small>Game votes (W-L-P)</small><b><%= rec.games.w %>-<%= rec.games.l %>-<%= rec.games.p %></b></div>
+  <div><small>Game accuracy</small><b><%= rec.games.acc === null ? '—' : rec.games.acc + '%' %></b></div>
+  <div><small>Market votes (W-L-P)</small><b><%= rec.markets.w %>-<%= rec.markets.l %>-<%= rec.markets.p %></b></div>
+  <div><small>Market accuracy</small><b><%= rec.markets.acc === null ? '—' : rec.markets.acc + '%' %></b></div>
+</div>
+<h2>🏟️ Game votes</h2>
+<% if (!games.length) { %><div class="card empty">No game votes yet. <a href="/sports">Vote on today's games.</a></div><% } else { %>
+<div class="card tablewrap"><table class="table"><tbody>
+<% games.forEach(function (v) { %><tr><td><a href="/game/<%= v.game_id %>"><%= v.away_name %> @ <%= v.home_name %></a><br><span class="muted small"><%= v.market === 'moneyline' ? 'Winner' : v.market === 'total' ? 'Over/Under' : 'Spread' %></span></td><td><b><%= v.text %></b></td>
+  <td class="num"><% if (v.state !== 'pre') { %><%= v.away_score %>–<%= v.home_score %><% } else { %><time class="lt" datetime="<%= v.starts_at %>"><%= lib.fmtGameTime(v.starts_at) %></time><% } %></td>
+  <td><span class="status s-<%= v.result === 'pending' ? 'open' : v.result === 'void' ? 'push' : v.result %>"><%= v.result %></span></td></tr><% }) %>
+</tbody></table></div><% } %>
+<h2>📈 Market votes</h2>
+<% if (!markets.length) { %><div class="card empty">No market votes yet. <a href="/markets">Vote on a market.</a></div><% } else { %>
+<div class="card tablewrap"><table class="table"><tbody>
+<% markets.forEach(function (v) { %><tr><td><a href="/t/<%= encodeURIComponent(v.symbol) %>"><%= v.label %></a><br><span class="muted small"><%= v.timeframe === 'day' ? 'Session' : 'Week' %> · <time class="lt" datetime="<%= v.starts_at %>"><%= lib.fmtDateTime(v.starts_at) %></time></span></td>
+  <td><b><%= v.direction === 'up' ? '▲ Up' : '▼ Down' %><%= v.target_pct ? ' ≥ ' + v.target_pct + '%' : '' %></b></td><td class="num"><%= v.change_pct !== null && v.result !== 'pending' ? lib.fmtPct(v.change_pct) : '' %></td>
+  <td><span class="status s-<%= v.result === 'pending' ? 'open' : v.result === 'void' ? 'push' : v.result %>"><%= v.result %></span></td></tr><% }) %>
+</tbody></table></div><% } %>
+<p class="muted small">Votes are for tracking only. Game votes are graded from final scores; market votes from price data. A vote on a postponed game or a window with no price data is voided and doesn't count.</p>
+<%- include('partials/footer') %>

@@ -1,0 +1,64 @@
+<%- include('partials/header') %>
+<h1>New post</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<form method="post" action="/post/new" class="card form" id="postform" autocomplete="off">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (form.game_id) { %><input type="hidden" name="game_id" value="<%= form.game_id %>"><% } %>
+  <% if (groups && groups.length) { %>
+  <label>Post to
+    <select name="group_id">
+      <option value="">Main feed (public)</option>
+      <% groups.forEach(function (g) { %><option value="<%= g.id %>" <%= String(form.group_id) === String(g.id) ? 'selected' : '' %>>👥 <%= g.name %></option><% }) %>
+    </select>
+  </label>
+  <% } %>
+  <label>Category / market
+    <select name="category" id="category">
+      <% markets.forEach(function (m) { %><option value="<%= m.key %>" data-kind="<%= m.kind %>" data-label="<%= m.subjectLabel %>" data-ph="<%= m.placeholder %>" <%= form.category === m.key ? 'selected' : '' %>><%= m.icon %> <%= m.label %></option><% }) %>
+    </select>
+  </label>
+
+  <label>World market tag (optional)
+    <select name="exchange"><option value="">None</option><% worldMarkets.forEach(function (w) { %><option value="<%= w.key %>" <%= form.exchange === w.key ? 'selected' : '' %>><%= w.flag %> <%= w.name %> – <%= w.exchange %></option><% }) %></select>
+  </label>
+
+  <label><span id="subjectLabel">Ticker</span>
+    <input name="subject" id="subject" value="<%= form.subject || '' %>" maxlength="80" required>
+  </label>
+
+  <!-- trading -->
+  <div data-kind="trading">
+    <label>Direction
+      <select name="pick" id="pickTrading">
+        <option value="Long" data-opt="no" <%= form.pick === 'Long' ? 'selected' : '' %>>Long</option>
+        <option value="Short" data-opt="no" <%= form.pick === 'Short' ? 'selected' : '' %>>Short</option>
+        <% OPTION_PICKS.forEach(function (o) { %><option value="<%= o %>" data-opt="yes" <%= form.pick === o ? 'selected' : '' %>><%= o %></option><% }) %>
+      </select>
+    </label>
+    <div class="grid3">
+      <label>Entry<input name="entry" inputmode="decimal" value="<%= form.entry || '' %>" placeholder="100.00"></label>
+      <label>Target<input name="target" inputmode="decimal" value="<%= form.target || '' %>" placeholder="110.00"></label>
+      <label>Stop<input name="stop" inputmode="decimal" value="<%= form.stop || '' %>" placeholder="95.00"></label>
+    </div>
+    <p class="muted small" id="optHint">For options, enter the option premium for entry, target and stop.</p>
+    <label>Time horizon
+      <select name="timeframe"><% TIMEFRAMES.forEach(function (t) { %><option <%= form.timeframe === t ? 'selected' : '' %>><%= t %></option><% }) %></select>
+    </label>
+  </div>
+
+  <!-- sports -->
+  <div data-kind="sports">
+    <label>Your pick<input name="pick" id="pickSports" value="<%= form.pick && !['Long','Short'].concat(OPTION_PICKS).includes(form.pick) ? form.pick : '' %>" maxlength="60" placeholder="Cardinals +3.5"></label>
+    <div class="grid3">
+      <label>Odds (American)<input name="odds" value="<%= form.odds || '' %>" placeholder="-110" maxlength="5"></label>
+      <label>Units (optional)<input name="units" inputmode="decimal" value="<%= form.units || '' %>" placeholder="1"></label>
+    </div>
+  </div>
+
+  <label>Reasoning
+    <textarea name="reasoning" rows="6" maxlength="2000" required placeholder="Why this idea? Setup, key stats, risks. No links."><%= form.reasoning || '' %></textarea>
+  </label>
+  <p class="muted small">Ideas only - nothing here executes trades or moves money. Once you mark a result it is locked.</p>
+  <button class="btn">Post idea</button>
+</form>
+<%- include('partials/footer') %>

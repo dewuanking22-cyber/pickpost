@@ -1,0 +1,6 @@
+<%- include('partials/header') %>
+<div class="rowhead"><h1>🔔 Notifications</h1>
+  <% if (rows.length) { %><form method="post" action="/notifications/clear" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn ghost small">Clear all</button></form><% } %></div>
+<% if (!rows.length) { %><div class="card empty">Nothing yet. You'll see comments, friend requests, group approvals and graded votes here.</div><% } %>
+<% rows.forEach(function (n) { %><a class="card notif <%= n.read ? '' : 'unread' %>" href="<%= /^\//.test(n.href) ? n.href : '/' %>"><span><%= n.text %></span> <small class="muted"><%= lib.timeAgo(n.created_at) %></small></a><% }) %>
+<%- include('partials/footer') %>

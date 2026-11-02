@@ -1,0 +1,23 @@
+<%- include('partials/header') %>
+<p><a class="muted" href="/sports/teams?league=<%= t.league %>">← <%= t.leagueLabel %> teams</a></p>
+<section class="card">
+  <h1><%= t.name %> <span class="tag"><%= t.leagueLabel %></span></h1>
+  <p class="muted"><%= [t.record ? 'Record ' + t.record : '', t.standing || ''].filter(Boolean).join(' · ') || 'Team page' %></p>
+</section>
+<% if (nextCard) { %><h2>Next / latest game — vote</h2><%- include('partials/gamecard', { c: nextCard, back: backUrl }) %><% } %>
+<% if (t.events && t.events.length) { %>
+<h2>Schedule &amp; results</h2>
+<div class="card tablewrap"><table class="table"><tbody>
+  <% t.events.slice(0, 40).forEach(function (e) { %>
+    <tr><td><time class="lt" datetime="<%= e.date %>"><%= lib.fmtDateTime(e.date) %></time></td><td><a href="/game/<%= e.id %>"><%= e.home ? 'vs' : '@' %> <%= e.opp %></a></td>
+      <td class="num"><% if (e.state === 'post') { %><b class="<%= e.winner ? 'up' : 'down' %>"><%= e.winner ? 'W' : 'L' %></b> <%= e.score %>–<%= e.oppScore %><% } else if (e.state === 'in') { %><span class="livepill">LIVE</span><% } else { %><span class="muted small"><%= e.detail %></span><% } %></td></tr>
+  <% }) %>
+</tbody></table></div>
+<% } else if (games.length) { %>
+<h2>Games we're tracking</h2>
+<% games.forEach(function (g) { %><div class="card game"><a href="/game/<%= g.id %>"><%= g.away.name %> @ <%= g.home.name %></a> <span class="muted small"><%= g.state === 'post' ? g.away.score + '–' + g.home.score : g.detail %></span></div><% }) %>
+<% } %>
+<h2>Picks mentioning <%= t.name.split(' ').pop() %></h2>
+<% if (!posts.length) { %><div class="card empty">No picks yet.</div><% } %>
+<% posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+<%- include('partials/footer') %>

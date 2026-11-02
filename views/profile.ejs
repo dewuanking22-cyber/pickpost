@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+<section class="card profile">
+  <div class="avatar"><%= u.username[0].toUpperCase() %></div>
+  <div class="grow">
+    <h1>@<%= u.username %> <% if (u.is_admin) { %><span class="tag">Admin</span><% } %></h1>
+    <p class="muted"><%= u.bio || 'No bio yet.' %></p>
+    <p class="muted small">Joined <%= u.created_at.slice(0, 10) %> · <b><%= followers %></b> followers · <b><%= followingN %></b> following</p>
+  </div>
+  <div>
+    <% if (me && me.id === u.id) { %>
+      <a class="btn ghost small" href="/settings">Edit profile</a>
+    <% } else if (me) { %>
+      <% const fl = { none: ['Add friend', ''], outgoing: ['Request sent ✓ (cancel)', 'ghost'], incoming: ['Accept friend request', ''], friends: ['Friends ✓ (unfriend)', 'ghost'] }[friendState] || ['Add friend', '']; %>
+      <form method="post" action="/u/<%= u.username %>/friend"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="/u/<%= u.username %>"><button class="btn small <%= fl[1] %>"><%= fl[0] %></button></form>
+      <form method="post" action="/u/<%= u.username %>/follow"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn small <%= isFollowing ? 'ghost' : '' %>"><%= isFollowing ? 'Following ✓' : 'Follow' %></button></form>
+    <% } else { %><a class="btn small" href="/login?next=/u/<%= u.username %>">Follow</a><% } %>
+  </div>
+</section>
+
+<section class="card record">
+  <h2>Track record</h2>
+  <% const pct = lib.winPct(total.w, total.l); %>
+  <div class="stats big">
+    <div><small>Record (W-L-P)</small><b><%= total.w %>-<%= total.l %>-<%= total.p %></b></div>
+    <div><small>Win rate</small><b><%= pct === null ? '—' : pct + '%' %></b></div>
+    <div><small>Open</small><b><%= total.open %></b></div>
+  </div>
+  <% if (byMarket.length > 1) { %>
+  <table class="table"><thead><tr><th>Market</th><th>W-L-P</th><th>Win %</th><th>Open</th></tr></thead><tbody>
+    <% byMarket.forEach(function (r) { const m = mkt(r.category) || { label: r.category, icon: '' }; %>
+      <tr><td><%= m.icon %> <%= m.label %></td><td><%= r.w %>-<%= r.l %>-<%= r.p %></td><td><%= lib.winPct(r.w, r.l) === null ? '—' : lib.winPct(r.w, r.l) + '%' %></td><td><%= r.open %></td></tr>
+    <% }) %>
+  </tbody></table>
+  <% } %>
+  <p class="muted small">Win rate = Won ÷ (Won + Lost). Pushes are not counted. Results are self-reported by the poster.</p>
+</section>
+
+<% if (voteRec) { %>
+<section class="card record">
+  <h2>Voting record <span class="muted small">(auto-graded)</span></h2>
+  <div class="stats big">
+    <div><small>Game votes</small><b><%= voteRec.games.w %>-<%= voteRec.games.l %>-<%= voteRec.games.p %></b><span class="muted small"><%= voteRec.games.acc === null ? '—' : voteRec.games.acc + '% accuracy' %></span></div>
+    <div><small>Market votes</small><b><%= voteRec.markets.w %>-<%= voteRec.markets.l %>-<%= voteRec.markets.p %></b><span class="muted small"><%= voteRec.markets.acc === null ? '—' : voteRec.markets.acc + '% accuracy' %></span></div>
+    <div><small>Pending</small><b><%= voteRec.games.open + voteRec.markets.open %></b></div>
+  </div>
+</section>
+<% } %>
+<h2>Posts</h2>
+<% if (!posts.length) { %><div class="card empty">No posts yet.</div><% } %>
+<% posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+<%- include('partials/footer') %>

@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<div class="split" data-pane="markets" id="split">
+  <div class="splittabs" role="tablist" aria-label="Pane">
+    <button class="chip on" data-pane-btn="markets" role="tab">📈 Markets</button>
+    <button class="chip" data-pane-btn="sports" role="tab">🏟️ Sports</button>
+    <span class="muted small">swipe or tap to switch</span>
+  </div>
+  <section class="pane pane-markets" data-pane-name="markets" aria-label="Markets side">
+    <%- include('partials/strip-markets', { cls: 'inpane' }) %>
+    <div class="panebody">
+      <div class="rowhead"><h2>📊 Vote on the market</h2><a class="small" href="/markets">More markets →</a></div>
+      <div class="vgrid"><% marketCards.slice(0, 2).forEach(function (mc) { %><%- include('partials/mvcard', { c: mc, back: backUrl }) %><% }) %></div>
+      <div class="rowhead"><h2>Markets feed</h2><span><a class="small" href="/">Open full feed →</a> <% if (me) { %><a class="btn small" href="/post/new">+ Post</a><% } %></span></div>
+      <% if (!feed.posts.length) { %><div class="card empty">No ideas yet.</div><% } %>
+      <% feed.posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+    </div>
+  </section>
+  <section class="pane pane-sports" data-pane-name="sports" aria-label="Sports side">
+    <%- include('partials/strip-sports', { cls: 'inpane' }) %>
+    <div class="panebody">
+      <div class="rowhead"><h2>🎯 Today's games — vote</h2><a class="small" href="/sports">All games →</a></div>
+      <% if (!hub.cards.length) { %><div class="card empty">No games on the board right now.</div><% } %>
+      <div class="gstack"><% hub.cards.slice(0, 4).forEach(function (c) { %><%- include('partials/gamecard', { c: c, back: backUrl }) %><% }) %></div>
+      <div class="rowhead"><h2>Sports feed</h2><span><a class="small" href="/sports/feed">Open full feed →</a> <% if (me) { %><a class="btn small" href="/post/new?market=sports">+ Pick</a><% } %></span></div>
+      <% if (!hub.posts.length) { %><div class="card empty">No sports picks yet.</div><% } %>
+      <% hub.posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+    </div>
+  </section>
+</div>
+<%- include('partials/footer') %>

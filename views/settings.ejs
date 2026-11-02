@@ -1,0 +1,20 @@
+<%- include('partials/header') %>
+<div class="narrow">
+<h1>Settings</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<% if (msg) { %><div class="alert ok"><%= msg %></div><% } %>
+<form method="post" action="/settings" class="card form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Profile</h2>
+  <label>Bio<textarea name="bio" rows="3" maxlength="160" placeholder="Short bio (no links)"><%= me.bio %></textarea></label>
+  <button class="btn">Save</button>
+</form>
+<form method="post" action="/settings/password" class="card form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Change password</h2>
+  <label>Current password<input type="password" name="current" autocomplete="current-password" required></label>
+  <label>New password<input type="password" name="password" minlength="8" maxlength="72" autocomplete="new-password" required></label>
+  <button class="btn">Change password</button>
+</form>
+</div>
+<%- include('partials/footer') %>

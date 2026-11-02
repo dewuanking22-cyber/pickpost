@@ -1,0 +1,8 @@
+<%- include('partials/header') %>
+<h1>Teams</h1>
+<div class="chips"><% config.data.leagues.forEach(function (l) { %><a class="chip <%= lk === l.key ? 'on' : '' %>" href="/sports/teams?league=<%= l.key %>"><%= l.label %></a><% }) %></div>
+<% if (!teams.length) { %><div class="card empty">Team list unavailable right now.</div><% } %>
+<div class="card tablewrap"><div class="teamgrid">
+  <% teams.forEach(function (t) { %><a class="teamlink" href="/team/<%= lk %>/<%= t.id %>"><b><%= t.abbr %></b> <%= t.name %></a><% }) %>
+</div></div>
+<%- include('partials/footer') %>

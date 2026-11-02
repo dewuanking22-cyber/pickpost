@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<p><a class="muted" href="/markets">← Markets</a></p>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<h1><%= c.info.label %></h1>
+<p class="muted small">Vote whether it closes up or down over the next session or week — for tracking only. Graded automatically from price data (Yahoo Finance, unofficial) shortly after the window ends.</p>
+<%- include('partials/mvcard', { c: c, back: '/t/' + encodeURIComponent(c.info.symbol) }) %>
+<% if (history.length) { %>
+<section class="card"><h3>My votes on <%= c.info.symbol %></h3>
+  <% history.forEach(function (v) { %><div class="rowitem small"><span><%= v.timeframe === 'day' ? 'Session' : 'Week' %> · <time class="lt" datetime="<%= v.starts_at %>"><%= lib.fmtDateTime(v.starts_at) %></time></span><b><%= v.direction === 'up' ? '▲ Up' : '▼ Down' %><%= v.target_pct ? ' ≥ ' + v.target_pct + '%' : '' %></b>
+    <span class="muted"><%= v.result !== 'pending' && v.change_pct !== null ? lib.fmtPct(v.change_pct) : '' %></span><span class="status s-<%= v.result === 'pending' ? 'open' : v.result === 'void' ? 'push' : v.result %>"><%= v.result %></span></div><% }) %>
+</section>
+<% } %>
+<div class="rowhead"><h2>Ideas mentioning <%= c.info.symbol.replace(/-USD$|=X$|=F$/, '').replace(/^\^/, '') %></h2><% if (me) { %><a class="btn small" href="/post/new?subject=<%= encodeURIComponent(c.info.symbol.replace(/-USD$|=X$|=F$/, '').replace(/^\^/, '')) %>&market=<%= c.info.category %>">+ Post an idea</a><% } %></div>
+<% if (!posts.length) { %><div class="card empty">No ideas yet.</div><% } %>
+<% posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+<%- include('partials/footer') %>

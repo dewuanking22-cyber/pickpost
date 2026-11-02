@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+<p><a href="/" class="muted">← Back to feed</a></p>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<%- include('partials/card', { p: post, full: true, back: '/post/' + post.id }) %>
+
+<div class="card tools">
+  <% const canDel = me && ((me.id === post.user_id && (post.status === 'open' || config.allowDeleteSettled)) || me.is_admin); %>
+  <% if (canDel) { %>
+    <form method="post" action="/post/<%= post.id %>/delete" class="inline" data-confirm="Delete this post? This cannot be undone.">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="/"><button class="btn danger small">Delete post</button>
+    </form>
+  <% } else if (me && me.id === post.user_id) { %>
+    <span class="muted small">Settled picks are locked so the track record stays honest.</span>
+  <% } %>
+  <% if (me && me.is_admin && post.status !== 'open') { %>
+    <form method="post" action="/post/<%= post.id %>/settle" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="/post/<%= post.id %>"><input type="hidden" name="result" value="open"><button class="btn ghost small">Admin: reopen</button></form>
+  <% } %>
+  <% if (me && me.id !== post.user_id) { %>
+    <% if (reported) { %><span class="muted small">You reported this post.</span><% } else { %>
+    <details class="report"><summary class="btn ghost small">Report</summary>
+      <form method="post" action="/post/<%= post.id %>/report">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <select name="reason" aria-label="Reason">
+          <option>Spam or scam</option><option>Contains links / promo</option><option>Harassment or abuse</option><option>Misleading results</option><option>Other</option>
+        </select>
+        <button class="btn danger small">Send report</button>
+      </form>
+    </details>
+    <% } %>
+  <% } %>
+</div>
+
+<section id="comments" class="card">
+  <h2>Comments (<%= comments.length %>)</h2>
+  <% comments.forEach(function (c) { %>
+    <div class="comment">
+      <div class="meta"><a class="who" href="/u/<%= c.username %>">@<%= c.username %></a> <span class="muted">· <%= lib.timeAgo(c.created_at) %></span>
+        <% if (me && (me.id === c.user_id || me.is_admin)) { %>
+          <form method="post" action="/comment/<%= c.id %>/delete" class="inline" data-confirm="Delete this comment?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linkbtn muted">delete</button></form>
+        <% } %>
+      </div>
+      <p><%= c.body %></p>
+    </div>
+  <% }) %>
+  <% if (!comments.length) { %><p class="muted">No comments yet.</p><% } %>
+  <% if (me) { %>
+    <form method="post" action="/post/<%= post.id %>/comment" class="commentform">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <textarea name="body" rows="2" maxlength="500" placeholder="Add a comment (no links)" required></textarea>
+      <button class="btn small">Comment</button>
+    </form>
+  <% } else { %><p><a href="/login?next=/post/<%= post.id %>">Log in</a> to comment.</p><% } %>
+</section>
+<%- include('partials/footer') %>

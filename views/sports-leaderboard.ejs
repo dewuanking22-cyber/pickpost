@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+<h1>🏆 Sports leaderboard</h1>
+<div class="chips">
+  <a class="chip <%= by === 'votes' ? 'on' : '' %>" href="/sports/leaderboard">🗳️ Game votes</a>
+  <a class="chip <%= by === 'picks' ? 'on' : '' %>" href="/sports/leaderboard?by=picks">✍️ Written picks</a>
+</div>
+<% if (by === 'votes') { %>
+<p class="muted">Accuracy = Won ÷ (Won + Lost) across graded winner / over-under / spread votes. Minimum <%= min %> graded votes. Graded automatically from final scores — nobody self-reports.</p>
+<div class="chips"><a class="chip small <%= !lk ? 'on' : '' %>" href="/sports/leaderboard<%= market ? '?market=' + market : '' %>">All leagues</a>
+  <% config.data.leagues.forEach(function (l) { %><a class="chip small <%= lk === l.key ? 'on' : '' %>" href="/sports/leaderboard?league=<%= l.key %><%= market ? '&market=' + market : '' %>"><%= l.label %></a><% }) %></div>
+<div class="chips"><a class="chip small <%= !market ? 'on' : '' %>" href="/sports/leaderboard<%= lk ? '?league=' + lk : '' %>">All vote types</a>
+  <% [['moneyline', 'Winner'], ['total', 'Over/Under'], ['spread', 'Spread']].forEach(function (m) { %><a class="chip small <%= market === m[0] ? 'on' : '' %>" href="/sports/leaderboard?market=<%= m[0] %><%= lk ? '&league=' + lk : '' %>"><%= m[1] %></a><% }) %></div>
+<% } else { %>
+<p class="muted">Written Sports Picks, ranked by win rate. Minimum <%= min %> settled picks. Results are self-reported.</p>
+<% } %>
+<% if (!rows.length) { %><div class="card empty">Nobody has qualified yet.</div><% } else { %>
+<div class="card tablewrap"><table class="table">
+  <thead><tr><th>#</th><th>User</th><th>W-L-P</th><th><%= by === 'votes' ? 'Accuracy' : 'Win %' %></th><th class="hide-sm">Settled</th></tr></thead><tbody>
+  <% rows.forEach(function (r, i) { %><tr><td><%= i + 1 %><%= i === 0 ? ' 🥇' : i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : '' %></td><td><a href="/u/<%= r.username %>">@<%= r.username %></a></td><td><%= r.w %>-<%= r.l %>-<%= r.p %></td><td><b><%= by === 'votes' ? r.acc : r.pct %>%</b></td><td class="hide-sm"><%= r.settled %></td></tr><% }) %>
+  </tbody></table></div>
+<% } %>
+<%- include('partials/footer') %>

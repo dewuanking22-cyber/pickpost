@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+<%
+  const q = (o) => { const p = new URLSearchParams(Object.assign({ league: leagueKey, filter: filter }, o)); ['league', 'filter'].forEach(function (k) { if (!p.get(k)) p.delete(k); }); const s = p.toString(); return '/sports' + (s ? '?' + s : ''); };
+%>
+<div class="rowhead"><h1>🏟️ Sports</h1><span class="muted small" id="scoresUpdated"></span></div>
+<p class="muted">Every game has a clickable vote card: pick the winner (or draw), over/under and the spread — just to keep score. Voting locks at the start of the game and is graded automatically from the final score.</p>
+<div class="chips" id="leagueChips">
+  <a class="chip <%= !leagueKey ? 'on' : '' %>" href="<%= q({ league: '' }) %>">All<% if (snap.live.length) { %> <span class="count live">● <%= snap.live.length %></span><% } %></a>
+  <% snap.leagues.forEach(function (l) { %><a class="chip <%= leagueKey === l.key ? 'on' : '' %>" href="<%= q({ league: l.key }) %>"><%= l.label %><% if (l.live) { %> <span class="count live">● <%= l.live %></span><% } else { %> <span class="count"><%= l.games.length %></span><% } %></a><% }) %>
+</div>
+<div class="chips" aria-label="Game status">
+  <% [['', 'All games'], ['live', '🔴 Live'], ['upcoming', 'Upcoming'], ['final', 'Final']].forEach(function (f) { %><a class="chip small <%= filter === f[0] ? 'on' : '' %>" href="<%= q({ filter: f[0] }) %>"><%= f[1] %></a><% }) %>
+</div>
+<% if (!snap.enabled) { %><div class="alert">Live data is switched off (MARKET_DATA=off). No games to show.</div><% } %>
+<% if (!cards.length) { %><div class="card empty">No games match right now<%= snap.enabled ? '. The scoreboard refreshes automatically — check back soon.' : '.' %></div><% } %>
+<% if (typeof flashOk !== 'undefined' && flashOk) { %><div class="alert ok"><%= flashOk %></div><% } %>
+<div class="gstack" id="gamelist">
+<% cards.forEach(function (c) { %><%- include('partials/gamecard', { c: c, back: backUrl }) %><% }) %>
+</div>
+
+<div class="rowhead"><h2>Latest sports picks</h2><span><a class="small" href="/sports/feed">Sports feed →</a> <% if (me) { %><a class="btn small" href="/post/new?market=sports">+ Post a pick</a><% } %></span></div>
+<% if (!posts.length) { %><div class="card empty">No sports picks yet.</div><% } %>
+<% posts.forEach(function (p) { %><%- include('partials/card', { p: p, full: false, back: backUrl }) %><% }) %>
+<%- include('partials/footer') %>

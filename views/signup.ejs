@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<div class="narrow">
+<h1>Create account</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<form method="post" action="/signup" class="card form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label>Username<input name="username" value="<%= form.username || '' %>" pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" required autofocus><small class="muted">3-20 letters, numbers or underscores</small></label>
+  <label>Password<input type="password" name="password" minlength="8" maxlength="72" autocomplete="new-password" required></label>
+  <label>Confirm password<input type="password" name="password2" minlength="8" maxlength="72" autocomplete="new-password" required></label>
+  <label class="check"><input type="checkbox" name="age21" required> I am 21 or older and understand posts are ideas, not financial advice.</label>
+  <button class="btn">Sign up</button>
+  <p class="muted small">Already registered? <a href="/login">Log in</a></p>
+</form>
+</div>
+<%- include('partials/footer') %>
